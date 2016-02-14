@@ -43,7 +43,7 @@ for runs=1:3
 % Parker GJM, Roberts C, Macdonald A, Buonaccorsi GA, Cheung S, Buckley DL,
 % et al. Experimentally-derived functional form for a population-averaged
 % high-temporal-resolution arterial input function for dynamic contrast-enhanced MRI.
-% MRM. 2006;56(5):993–1000.
+% MRM. 2006;56(5):993â€“1000.
 
     deltaT_high=0.01/60; %in minutes
     startT_high=-20/60;% 
@@ -112,7 +112,10 @@ for runs=1:3
             A(:,1)=-intC;%
             A(:,2)=intCp;
             A(:,3)=int2Cp;
-            B=A\C';
+            %B=A\C';
+          
+            Ainv=Analytical_inversion3X3(A'*A); 
+            B=Ainv*A'*C';
             
             fitpar_LLS(1)=B(2)/Res;
             fitpar_LLS(2)=(B(2)*B(2)/(B(1)*B(2)-B(3)));
