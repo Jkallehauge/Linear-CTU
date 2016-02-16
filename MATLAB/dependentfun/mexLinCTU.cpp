@@ -70,8 +70,7 @@ void mexFunction(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[])
         ATAinv[6] =  C/det;
         ATAinv[7] =  F/det;
         ATAinv[8] =  I/det;
-    }
-    
+    }    
       
     for (int col=0; col<3; col++){
             for (int i=0; i<ntpts[0]; i++){
