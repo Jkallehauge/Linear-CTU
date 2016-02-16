@@ -103,20 +103,22 @@ for runs=1:3
             [fitpar,resnorm,residual,exitflag,OUTPUT,LAMBDA,J] = lsqnonlin(@model_C_TU_expconv, [Fp_ref vp_ref PS_ref], [0 0 0], [inf inf inf], options, [t; Cp; C]');
             NLLS_timer(Res_index,repeat,runs)=toc(tstart_NLLS);
             fitpar_NLLS=fitpar;
-            
-            %LLS
+            C_T=C';
+            Cp_T=Cp';
             tstart_LLS=tic;
-            intC=cumtrapz(t/Res,C);
-            intCp=cumtrapz(t/Res,Cp);
-            int2Cp=cumtrapz(t/Res,intCp);
-            A(:,1)=-intC;%
-            A(:,2)=intCp;
-            A(:,3)=int2Cp;
-            B=A\C';
+            [param]=mexLinCTU(C_T,Cp_T);
+
+%           intC=cumtrapz(t/Res,C);
+%           intCp=cumtrapz(t/Res,Cp);
+%           int2Cp=cumtrapz(t/Res,intCp);
+%           A(:,1)=-intC;%
+%           A(:,2)=intCp;
+%           A(:,3)=int2Cp;
+%           B=A\C';
             
-            fitpar_LLS(1)=B(2)/Res;
-            fitpar_LLS(2)=(B(2)*B(2)/(B(1)*B(2)-B(3)));
-            fitpar_LLS(3)=(B(2)*B(3)/(B(1)*B(2)-B(3)))/Res;
+            fitpar_LLS(1)=param(1)/Res;
+            fitpar_LLS(2)=param(2);
+            fitpar_LLS(3)=param(3)/Res;
             LLS_timer(Res_index,repeat,runs)=toc(tstart_LLS);
             
             NLLS_result(Res_index,repeat,:)=fitpar_NLLS';
@@ -128,7 +130,6 @@ for runs=1:3
         Accuracy_vp_LLS(Res_index)=100*mean((squeeze(LLS_result(Res_index,:,2))-ones(numrepeat,1)'*vp_ref)/vp_ref);
         Accuracy_PS_NLLS(Res_index)=100*mean((squeeze(NLLS_result(Res_index,:,3)))-ones(numrepeat,1)'*PS_ref)/PS_ref;
         Accuracy_PS_LLS(Res_index)=100*mean((squeeze(LLS_result(Res_index,:,3)))-ones(numrepeat,1)'*PS_ref)/PS_ref;
-        
     end
     
     
@@ -169,19 +170,38 @@ for runs=1:3
     ylabel('Accuracy [%]');
     ylim([-10 10]);
     
-    if runs==1
-        h2=figure;
-    else
-        figure(h2);
-    end
-    subplot(2,2,runs);
-    plot(Resarray*60,mean(squeeze(NLLS_timer(:,:,runs))')./mean(squeeze(LLS_timer(:,:,runs))'),'-r','LineWidth',2);
-    title(['Fp= ',num2str(Fp_ref),' [min^{-1}], Vp= ',num2str(vp_ref),' PS= ',num2str(PS_ref),' [min^{-1}]'],'fontweight','bold','fontsize',10);
-    legend('NLLS/LLS');
-    xlabel('Temporal resolution [s]');
-    ylabel('Speed up');
-    ylim([0 60]);
-        
+
 end
 
-
+figure;
+for runs=1:3
+    switch runs
+        case 1
+            hold on;
+            plot(Resarray*60,mean(squeeze(NLLS_timer(:,:,runs))')./mean(squeeze(LLS_timer(:,:,runs))'),'-k','LineWidth',2);    
+            Fp_ref=0.23;
+            PS_ref=0.02;
+            vp_ref=0.05;
+            legd{runs}=['Fp= ',num2str(Fp_ref),' [min^{-1}], Vp= ',num2str(vp_ref),' PS= ',num2str(PS_ref),' [min^{-1}]'];
+        case 2    
+            hold on;
+            plot(Resarray*60,mean(squeeze(NLLS_timer(:,:,runs))')./mean(squeeze(LLS_timer(:,:,runs))'),'-r','LineWidth',2);    
+            Fp_ref=0.57;
+            PS_ref=0.2;
+            vp_ref=0.28;
+            legd{runs}=['Fp= ',num2str(Fp_ref),' [min^{-1}], Vp= ',num2str(vp_ref),' PS= ',num2str(PS_ref),' [min^{-1}]'];
+        case 3
+            hold on;
+            plot(Resarray*60,mean(squeeze(NLLS_timer(:,:,runs))')./mean(squeeze(LLS_timer(:,:,runs))'),'-b','LineWidth',2);
+            Fp_ref=0.65;
+            PS_ref=0.14;
+            vp_ref=0.22;         
+            legd{runs}=['Fp= ',num2str(Fp_ref),' [min^{-1}], Vp= ',num2str(vp_ref),' PS= ',num2str(PS_ref),' [min^{-1}]'];
+    end
+        
+end
+legend(legd,'fontweight','bold','fontsize',10);
+    title('NLLS/LLS');
+    xlabel('Temporal resolution [s]');
+    ylabel('Speed up');
+    ylim([0 1000]);
